@@ -13,7 +13,7 @@ type cleaner struct {
 type Cache struct {
 	lifetime   time.Duration
 	storage    map[uint64]*objectCache
-	rWMutex    sync.Mutex
+	rWMutex    sync.RWMutex
 	deathQueue chan cleaner
 }
 
@@ -21,7 +21,7 @@ func New(opts ...CacheOption) *Cache {
 	c := &Cache{
 		defaultLifetime,
 		make(map[uint64]*objectCache),
-		sync.Mutex{},
+		sync.RWMutex{},
 		make(chan cleaner),
 	}
 
@@ -56,8 +56,8 @@ func (c *Cache) Set(user *UserReadModel) {
 }
 
 func (c *Cache) Get(id uint64) *UserReadModel {
-	c.rWMutex.Lock()
-	defer c.rWMutex.Unlock()
+	c.rWMutex.RLock()
+	defer c.rWMutex.RUnlock()
 
 	userCache, exists := c.storage[id]
 
